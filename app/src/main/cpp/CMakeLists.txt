@@ -68,4 +68,5 @@ target_link_libraries(
         libswresample-1
         libswscale-3
         ${log-lib}
+        android
 )
