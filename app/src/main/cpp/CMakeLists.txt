@@ -67,6 +67,7 @@ target_link_libraries(
         libpostproc-53
         libswresample-1
         libswscale-3
-        ${log-lib}
         android
+        OpenSLES
+        ${log-lib}
 )

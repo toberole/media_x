@@ -1,155 +1,178 @@
 #include <jni.h>
 #include <string>
-#include "com_xxx_media_Media.h"
-#include "log.h"
-
+#include <android/log.h>
 extern "C" {
 //编码
 #include "libavcodec/avcodec.h"
 //封装格式处理
 #include "libavformat/avformat.h"
+#include "libswresample/swresample.h"
 //像素处理
 #include "libswscale/swscale.h"
-
 #include <android/native_window_jni.h>
 #include <unistd.h>
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
+}
+#include "FFmpegMusic.h"
+#define LOGE(FORMAT,...) __android_log_print(ANDROID_LOG_ERROR,"LC",FORMAT,##__VA_ARGS__);
+
+SLObjectItf engineObject=NULL;//用SLObjectItf声明引擎接口对象
+SLEngineItf engineEngine = NULL;//声明具体的引擎对象
+
+
+SLObjectItf outputMixObject = NULL;//用SLObjectItf创建混音器接口对象
+SLEnvironmentalReverbItf outputMixEnvironmentalReverb = NULL;////具体的混音器对象实例
+SLEnvironmentalReverbSettings settings = SL_I3DL2_ENVIRONMENT_PRESET_DEFAULT;//默认情况
+
+
+SLObjectItf audioplayer=NULL;//用SLObjectItf声明播放器接口对象
+SLPlayItf  slPlayItf=NULL;//播放器接口
+SLAndroidSimpleBufferQueueItf  slBufferQueueItf=NULL;//缓冲区队列接口
+
+
+size_t buffersize =0;
+void *buffer;
+//将pcm数据添加到缓冲区中
+void getQueueCallBack(SLAndroidSimpleBufferQueueItf  slBufferQueueItf, void* context){
+
+    buffersize=0;
+
+    getPcm(&buffer,&buffersize);
+    if(buffer!=NULL&&buffersize!=0){
+        //将得到的数据加入到队列中
+        (*slBufferQueueItf)->Enqueue(slBufferQueueItf,buffer,buffersize);
+    }
+}
+
+//创建引擎
+void createEngine(){
+    slCreateEngine(&engineObject,0,NULL,0,NULL,NULL);//创建引擎
+    (*engineObject)->Realize(engineObject,SL_BOOLEAN_FALSE);//实现engineObject接口对象
+    (*engineObject)->GetInterface(engineObject,SL_IID_ENGINE,&engineEngine);//通过引擎调用接口初始化SLEngineItf
+}
+
+//创建混音器
+void createMixVolume(){
+    (*engineEngine)->CreateOutputMix(engineEngine,&outputMixObject,0,0,0);//用引擎对象创建混音器接口对象
+    (*outputMixObject)->Realize(outputMixObject,SL_BOOLEAN_FALSE);//实现混音器接口对象
+    SLresult   sLresult = (*outputMixObject)->GetInterface(outputMixObject,SL_IID_ENVIRONMENTALREVERB,&outputMixEnvironmentalReverb);//利用混音器实例对象接口初始化具体的混音器对象
+    //设置
+    if (SL_RESULT_SUCCESS == sLresult) {
+        (*outputMixEnvironmentalReverb)->
+                SetEnvironmentalReverbProperties(outputMixEnvironmentalReverb, &settings);
+    }
+}
+
+//创建播放器
+void createPlayer(){
+    //初始化ffmpeg
+    int rate;
+    int channels;
+    createFFmpeg(&rate,&channels);
+    LOGE("RATE %d",rate);
+    LOGE("channels %d",channels);
+    /*
+     * typedef struct SLDataLocator_AndroidBufferQueue_ {
+    SLuint32    locatorType;//缓冲区队列类型
+    SLuint32    numBuffers;//buffer位数
+} */
+
+    SLDataLocator_AndroidBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,2};
+    /**
+    typedef struct SLDataFormat_PCM_ {
+        SLuint32 		formatType;  pcm
+        SLuint32 		numChannels;  通道数
+        SLuint32 		samplesPerSec;  采样率
+        SLuint32 		bitsPerSample;  采样位数
+        SLuint32 		containerSize;  包含位数
+        SLuint32 		channelMask;     立体声
+        SLuint32		endianness;    end标志位
+    } SLDataFormat_PCM;
+     */
+    SLDataFormat_PCM pcm = {SL_DATAFORMAT_PCM,channels,rate*1000
+            ,SL_PCMSAMPLEFORMAT_FIXED_16
+            ,SL_PCMSAMPLEFORMAT_FIXED_16
+            ,SL_SPEAKER_FRONT_LEFT|SL_SPEAKER_FRONT_RIGHT,SL_BYTEORDER_LITTLEENDIAN};
+
+    /*
+     * typedef struct SLDataSource_ {
+	        void *pLocator;//缓冲区队列
+	        void *pFormat;//数据样式,配置信息
+        } SLDataSource;
+     * */
+    SLDataSource dataSource = {&android_queue,&pcm};
+
+
+    SLDataLocator_OutputMix slDataLocator_outputMix={SL_DATALOCATOR_OUTPUTMIX,outputMixObject};
+
+
+    SLDataSink slDataSink = {&slDataLocator_outputMix,NULL};
+
+
+    const SLInterfaceID ids[3]={SL_IID_BUFFERQUEUE,SL_IID_EFFECTSEND,SL_IID_VOLUME};
+    const SLboolean req[3]={SL_BOOLEAN_FALSE,SL_BOOLEAN_FALSE,SL_BOOLEAN_FALSE};
+
+    /*
+     * SLresult (*CreateAudioPlayer) (
+		SLEngineItf self,
+		SLObjectItf * pPlayer,
+		SLDataSource *pAudioSrc,//数据设置
+		SLDataSink *pAudioSnk,//关联混音器
+		SLuint32 numInterfaces,
+		const SLInterfaceID * pInterfaceIds,
+		const SLboolean * pInterfaceRequired
+	);
+     * */
+    LOGE("执行到此处")
+    (*engineEngine)->CreateAudioPlayer(engineEngine,&audioplayer,&dataSource,&slDataSink,3,ids,req);
+    (*audioplayer)->Realize(audioplayer,SL_BOOLEAN_FALSE);
+    LOGE("执行到此处2")
+    (*audioplayer)->GetInterface(audioplayer,SL_IID_PLAY,&slPlayItf);//初始化播放器
+    //注册缓冲区,通过缓冲区里面 的数据进行播放
+    (*audioplayer)->GetInterface(audioplayer,SL_IID_BUFFERQUEUE,&slBufferQueueItf);
+    //设置回调接口
+    (*slBufferQueueItf)->RegisterCallback(slBufferQueueItf,getQueueCallBack,NULL);
+    //播放
+    (*slPlayItf)->SetPlayState(slPlayItf,SL_PLAYSTATE_PLAYING);
+
+    //开始播放
+    getQueueCallBack(slBufferQueueItf,NULL);
+
+}
+//释放资源
+void realseResource(){
+    if(audioplayer!=NULL){
+        (*audioplayer)->Destroy(audioplayer);
+        audioplayer=NULL;
+        slBufferQueueItf=NULL;
+        slPlayItf=NULL;
+    }
+    if(outputMixObject!=NULL){
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject=NULL;
+        outputMixEnvironmentalReverb=NULL;
+    }
+    if(engineObject!=NULL){
+        (*engineObject)->Destroy(engineObject);
+        engineObject=NULL;
+        engineEngine=NULL;
+    }
+    realseFFmpeg();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_test_ffmpegopensles_MusicPlay_play(JNIEnv *env, jobject instance) {
+        createEngine();
+        createMixVolume();
+        createPlayer();
+
 }
 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_xxx_media_Media_render(JNIEnv *env, jclass jclazz, jstring inputStr_, jobject surface) {
-
-    const char *inputPath = env->GetStringUTFChars(inputStr_, NULL);
-    LOGE("inputPath: %s", inputPath);
-
-    av_register_all();
-
-    // avformat_network_init();
-
-    //获取上下文
-    AVFormatContext *avFormatContext = avformat_alloc_context();
-
-    char buf[] = "";
-    //打开视频地址并获取里面的内容(解封装)
-    int error = avformat_open_input(&avFormatContext, inputPath, NULL, NULL);
-    if (error < 0) {
-        av_strerror(error, buf, 1024);
-        LOGE("Couldn't open file %s: %d(%s)", inputPath, error, buf);
-        return;
-    }
-    if (avformat_find_stream_info(avFormatContext, NULL) < 0) {
-        LOGE("获取内容失败");
-        return;
-    }
-
-    //获取到整个内容过后找到里面的视频流
-    int video_index = -1;
-    for (int i = 0; i < avFormatContext->nb_streams; ++i) {
-        if (avFormatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            video_index = i;
-        }
-    }
-    LOGE("成功找到视频流 video_index = %d", video_index);
-
-    //对视频流进行解码
-    //获取解码器上下文
-    AVCodecContext *avCodecContext = avFormatContext->streams[video_index]->codec;
-    //获取解码器
-    AVCodec *avCodec = avcodec_find_decoder(avCodecContext->codec_id);
-    //打开解码器
-    if (avcodec_open2(avCodecContext, avCodec, NULL) < 0) {
-        LOGE("打开失败");
-        return;
-    }
-
-    //申请AVPacket
-    AVPacket *packet = (AVPacket *) av_malloc(sizeof(AVPacket));
-    av_init_packet(packet);
-    //申请AVFrame
-    //分配一个AVFrame结构体,AVFrame结构体一般用于存储原始数据，指向解码后的原始帧
-    AVFrame *frame = av_frame_alloc();
-    //分配一个AVFrame结构体，指向存放转换成rgb后的帧
-    AVFrame *rgb_frame = av_frame_alloc();
-    //输出文件
-    //FILE *fp = fopen(outputPath,"wb");
-
-    //缓存区
-    uint8_t *out_buffer = (uint8_t *) av_malloc(
-            avpicture_get_size(AV_PIX_FMT_RGBA,
-                               avCodecContext->width,
-                               avCodecContext->height));
-    //与缓存区相关联，设置rgb_frame缓存区
-    avpicture_fill((AVPicture *) rgb_frame, out_buffer,
-                   AV_PIX_FMT_RGBA, avCodecContext->width,
-                   avCodecContext->height);
-
-
-    SwsContext *swsContext = sws_getContext(
-            avCodecContext->width,
-            avCodecContext->height,
-            avCodecContext->pix_fmt,
-            avCodecContext->width,
-            avCodecContext->height,
-            AV_PIX_FMT_RGBA,
-            SWS_BICUBIC, NULL, NULL, NULL);
-
-    //取到nativewindow
-    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-    if (nativeWindow == 0) {
-        LOGE("nativewindow取到失败");
-        return;
-    }
-    //视频缓冲区
-    ANativeWindow_Buffer native_outBuffer;
-
-    int frameCount;
-    while (av_read_frame(avFormatContext, packet) >= 0) {
-        LOGE("解码 stream_index = %d", packet->stream_index);
-
-        if (packet->stream_index == video_index) {
-            //视频流 解码
-            avcodec_decode_video2(avCodecContext, frame, &frameCount, packet);
-            LOGE("解码中....  %d", frameCount);
-            if (frameCount) {
-                //有内容 绘制之前配置nativewindow
-                ANativeWindow_setBuffersGeometry(
-                        nativeWindow, avCodecContext->width,
-                        avCodecContext->height, WINDOW_FORMAT_RGBA_8888);
-                //上锁
-                ANativeWindow_lock(nativeWindow, &native_outBuffer, NULL);
-                //转换为rgb格式
-                sws_scale(swsContext, (const uint8_t *const *) frame->data, frame->linesize, 0,
-                          frame->height, rgb_frame->data,
-                          rgb_frame->linesize);
-                // rgb_frame是有画面数据
-                uint8_t *dst = (uint8_t *) native_outBuffer.bits;
-                // 拿到一行有多少个字节 RGBA
-                int destStride = native_outBuffer.stride * 4;
-                // 像素数据的首地址
-                uint8_t *src = rgb_frame->data[0];
-                // 实际内存一行数量
-                int srcStride = rgb_frame->linesize[0];
-                //int i=0;
-                for (int i = 0; i < avCodecContext->height; ++i) {
-                    // memcpy(void *dest, const void *src, size_t n)
-                    //将rgb_frame中每一行的数据复制给nativewindow
-                    memcpy(dst + i * destStride, src + i * srcStride, srcStride);
-                }
-
-                //解锁
-                ANativeWindow_unlockAndPost(nativeWindow);
-                usleep(1000 * 16);
-            }
-        }
-        av_free_packet(packet);
-    }
-
-    //释放
-    ANativeWindow_release(nativeWindow);
-    av_frame_free(&frame);
-    av_frame_free(&rgb_frame);
-    avcodec_close(avCodecContext);
-    avformat_free_context(avFormatContext);
-    env->ReleaseStringUTFChars(inputStr_, inputPath);
+Java_com_test_ffmpegopensles_MusicPlay_stop(JNIEnv *env, jobject instance) {
+    realseResource();
 }

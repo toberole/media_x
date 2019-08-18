@@ -14,7 +14,8 @@ public class Media {
         System.loadLibrary("native-lib");
     }
 
-    public native static void start(String path, Object surface);
+    public native static void render(String path, Object surface);
 
-    public native static void render(String input, Object surface);
+    public native static void playSound(MusicPlay object, String path);
+
 }

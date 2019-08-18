@@ -14,8 +14,14 @@
         android:layout_height="300dp" />
 
     <Button
-        android:id="@+id/play"
+        android:id="@+id/play_video"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放" />
+        android:text="播放视频" />
+
+    <Button
+        android:id="@+id/play_audio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="播放音频" />
 </LinearLayout>
