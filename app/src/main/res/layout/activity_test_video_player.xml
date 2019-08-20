@@ -5,23 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activity.MainActivity">
+    tools:context=".activity.TestVideoPlayerActivity">
 
-
-    <com.xxx.media.view.FFmpegVideoView
-        android:id="@+id/videoView"
+    <SurfaceView
+        android:id="@+id/surfaceView"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
     <Button
-        android:id="@+id/play_video"
+        android:id="@+id/btn_playVideo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放视频" />
+        android:text="playVideo" />
 
-    <Button
-        android:id="@+id/play_audio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="播放音频" />
 </LinearLayout>

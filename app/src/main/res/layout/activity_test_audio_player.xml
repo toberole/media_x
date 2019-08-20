@@ -5,23 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activity.MainActivity">
-
-
-    <com.xxx.media.view.FFmpegVideoView
-        android:id="@+id/videoView"
-        android:layout_width="match_parent"
-        android:layout_height="300dp" />
+    tools:context=".activity.TestAudioPlayerActivity">
 
     <Button
-        android:id="@+id/play_video"
+        android:id="@+id/btn_playAudio1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放视频" />
+        android:text="playAudio_audioTrack" />
 
     <Button
-        android:id="@+id/play_audio"
+        android:id="@+id/btn_playAudio2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放音频" />
+        android:text="playAudio_sl" />
+
 </LinearLayout>

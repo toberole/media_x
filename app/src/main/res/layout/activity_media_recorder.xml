@@ -5,23 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activity.MainActivity">
+    tools:context=".activity.MediaRecorderActivity">
 
 
-    <com.xxx.media.view.FFmpegVideoView
-        android:id="@+id/videoView"
+    <TextureView
+        android:id="@+id/tv_preView"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
     <Button
-        android:id="@+id/play_video"
+        android:id="@+id/btn_record"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="播放视频" />
+        android:layout_margin="20dp"
+        android:text="record" />
 
-    <Button
-        android:id="@+id/play_audio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="播放音频" />
 </LinearLayout>

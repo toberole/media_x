@@ -1,13 +1,16 @@
-package com.xxx.media;
+package com.xxx.media.activity;
 
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.xxx.media.view.FFmpegVideoView;
+import com.xxx.media.Media;
+import com.xxx.media.MusicPlay;
+import com.xxx.media.R;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+public class MainActivity extends BaseActivity implements View.OnClickListener {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private FFmpegVideoView videoView;
@@ -19,10 +22,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ActivityCompat.requestPermissions(this, new String[]{
-                android.Manifest.permission.INTERNET,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE
-        }, 100);
 
         play_video = findViewById(R.id.play_video);
         videoView = findViewById(R.id.videoView);

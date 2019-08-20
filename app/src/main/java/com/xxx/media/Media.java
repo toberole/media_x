@@ -18,4 +18,23 @@ public class Media {
 
     public native static void playSound(MusicPlay object, String path);
 
+    public native static void test1(String in_path, String out_path);
+
+    public native static void test2(String in_path, String out_path);
+
+    /**
+     * ffmpeg 播放视频
+     */
+    public native static void test3(String in_path, Object surface);
+
+    /**
+     * audioTrack 播放音频
+     */
+    public native static void test4(String in_path, Object obj);
+
+    /**
+     * opensl es播放音频
+     */
+    public native static void test5(String in_path);
+
 }
