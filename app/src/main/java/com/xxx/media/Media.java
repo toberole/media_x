@@ -35,6 +35,8 @@ public class Media {
     /**
      * opensl es播放音频
      */
-    public native static void test5(String in_path);
+    public native static void test5_opensl_es_start(String in_path);
+    public native static void test5_opensl_es_stop();
+
 
 }

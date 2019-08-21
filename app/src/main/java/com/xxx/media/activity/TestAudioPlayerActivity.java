@@ -30,8 +30,13 @@ public class TestAudioPlayerActivity extends BaseActivity {
         }).start();
     }
 
-    @OnClick(R.id.btn_playAudio2)
-    void btn_playAudio2() {
+    @OnClick(R.id.btn_sl_playAudio2)
+    void btn_sl_playAudio2() {
+        Media.test5_opensl_es_start(Test.AUDIO);
+    }
 
+    @OnClick(R.id.btn_sl_stopplayAudio2)
+    void btn_sl_stopplayAudio2() {
+        Media.test5_opensl_es_stop();
     }
 }

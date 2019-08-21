@@ -1,6 +1,5 @@
 #include "log.h"
-#include <SLES/OpenSLES.h>
-
+#include "OpenSLESPlayer.h"
 /**
  * opensl 播放pcm
  */
@@ -67,26 +66,93 @@ Data Source 和 Data Sink
 数据源(Data source)是媒体对象的输入参数，指定媒体对象将从何处接收特定类型的数据（例如采样的音频或MIDI数据）。 数据接收器(Data sink)是媒体对象的输入参数，指定媒体对象将发送特定类型数据的位置。
 OpenSL ES 里面，这两个结构体均是作为创建 Media Object 对象时的参数而存在的，Data source 代表着输入源的信息，即数据从哪儿来、输入的数据参数是怎样的；而 Data Sink 代表着输出的信息，即数据输出到哪儿、以什么样的参数来输出。
 
+typedef struct SLDataSource_ {
+	void *pLocator;
+	void *pFormat;
+} SLDataSource;
 
 
+typedef struct SLDataSink_ {
+	void *pLocator;
+	void *pFormat;
+} SLDataSink;
 
+pLocator 主要有如下几种：
+    SLDataLocator_Address
+    SLDataLocator_BufferQueue
+    SLDataLocator_IODevice
+    SLDataLocator_MIDIBufferQueue
+    SLDataLocator_URI
+
+Media Object 对象的输入源/输出源，既可以是 URL，也可以 Device，或者来自于缓冲区队列等等，
+完全是由 Media Object 对象的具体类型和应用场景来配置。数据格式(data format)标识数据流的特征，
+包括以下几种类型：
+    1、基于MIME类型的格式
+    2、PCM格式
 
  */
 
+
+/*
+Metadata Extractor Object
+播放器对象支持读取媒体内容的元数据。但是有时候只是读取元数据而不播放媒体内容是很有用处的。
+Metadata Extractor Object可以用于读取元数据而不需要分配用于媒体播放的资源。
+
+*/
+
+OpenSLESPlayer *openSLESPlayer;
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_xxx_media_Media_test5(JNIEnv *env, jclass type, jstring in_path_) {
+Java_com_xxx_media_Media_test5_1opensl_1es_1start(JNIEnv *env, jclass type, jstring in_path_) {
     const char *in_path = env->GetStringUTFChars(in_path_, 0);
-
-    // 创建
-    SLObjectItf engineObject;
-    slCreateEngine(&engineObject, 0, nullptr, 0, nullptr, nullptr);
-    // 初始化
-    (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
-    // 销毁
-    (*engineObject)->Destroy(engineObject);
-    // 获取管理接口
-    (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineObject);
-
+    openSLESPlayer = new OpenSLESPlayer();
+    openSLESPlayer->setDataSource(in_path);
+    openSLESPlayer->prepare();
+    openSLESPlayer->start();
     env->ReleaseStringUTFChars(in_path_, in_path);
 }
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_xxx_media_Media_test5_1opensl_1es_1stop(JNIEnv *env, jclass type) {
+    if (nullptr != openSLESPlayer) {
+        openSLESPlayer->stop();
+        openSLESPlayer->release();
+        delete (openSLESPlayer);
+        openSLESPlayer = nullptr;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
