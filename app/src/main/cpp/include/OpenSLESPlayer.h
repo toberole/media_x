@@ -23,7 +23,5 @@ private:
     SLObjectItf playerObject;
     SLPlayItf playerPlay;
     SLVolumeItf playerVolume;
-
-
 };
 #endif //OPENGLESDEMO_OPENGLESPlYAER_H

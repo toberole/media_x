@@ -7,9 +7,27 @@ void *buffer;
 uint8_t *out_buffer;
 SLAndroidSimpleBufferQueueItf simpleBufferQueue;
 
+/*
+    1.创建EngineObject
+    2.设置DataSource
+    3.设置DataSink
+    4.创建播放器
+    5.设置缓冲队列和回调函数
+    6.设置播放状态
+    7.启动回调函数
+*/
+OpenSLESPlayer::OpenSLESPlayer() :
+        engineObject(NULL),
+        engineEngine(NULL),
+        outputMixObject(NULL),
+        playerObject(NULL),
+        playerPlay(NULL),
+        playerVolume(NULL) {
+}
+
 int64_t getPcmData(void **pcm, FILE *pcmFile, uint8_t *out_buffer) {
     while (!feof(pcmFile)) {
-        size_t size = fread(out_buffer, 1, 44100 * 2 * 2, pcmFile);
+        size_t size = fread(out_buffer, 1, 16000 * 2 * 2, pcmFile);
         *pcm = out_buffer;
         return size;
     }
@@ -21,35 +39,33 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     LOGD("pcmBufferCallBack, size=%d", size);
     if (NULL != buffer && size > 0) {
         SLresult result = (*simpleBufferQueue)->Enqueue(simpleBufferQueue, buffer, size);
+        if (result != SL_RESULT_SUCCESS) {
+            LOGD("pcmBufferCallBack Enqueue faild %d", result);
+        }
     }
-}
-
-OpenSLESPlayer::OpenSLESPlayer() :
-        engineObject(NULL),
-        engineEngine(NULL),
-        outputMixObject(NULL),
-        playerObject(NULL),
-        playerPlay(NULL),
-        playerVolume(NULL) {
 }
 
 SLresult OpenSLESPlayer::createEngine() {
     LOGD("createEngine()");
+
     SLresult result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);
     if (result != SL_RESULT_SUCCESS) {
         LOGD("slCreateEngine failed, result=%d", result);
         return result;
     }
+
     result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
     if (result != SL_RESULT_SUCCESS) {
         LOGD("engineObject Realize failed, result=%d", result);
         return result;
     }
+
     result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &(engineEngine));
     if (result != SL_RESULT_SUCCESS) {
         LOGD("engineObject GetInterface failed, result=%d", result);
         return result;
     }
+
     return result;
 }
 
@@ -95,6 +111,7 @@ int32_t OpenSLESPlayer::prepare() {
         LOGD("CreateOutputMix failed, ret=%d", ret);
         return ret;
     }
+
     ret = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
     if (ret != SL_RESULT_SUCCESS) {
         LOGD("Realize failed, result=%d", ret);
@@ -112,16 +129,19 @@ int32_t OpenSLESPlayer::prepare() {
         LOGD("CreateAudioPlayer() failed.");
         return ret;
     }
+
     ret = (*playerObject)->Realize(playerObject, SL_BOOLEAN_FALSE);
     if (ret != SL_RESULT_SUCCESS) {
         LOGD("playerObject Realize() failed.");
         return ret;
     }
+
     ret = (*playerObject)->GetInterface(playerObject, SL_IID_PLAY, &playerPlay);
     if (ret != SL_RESULT_SUCCESS) {
         LOGD("playerObject GetInterface(SL_IID_PLAY) failed.");
         return ret;
     }
+
     ret = (*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &simpleBufferQueue);
     if (ret != SL_RESULT_SUCCESS) {
         LOGD("playerObject GetInterface(SL_IID_BUFFERQUEUE) failed.");
@@ -133,6 +153,7 @@ int32_t OpenSLESPlayer::prepare() {
         LOGD("SLAndroidSimpleBufferQueueItf RegisterCallback() failed.");
         return ret;
     }
+
     return ret;
 }
 

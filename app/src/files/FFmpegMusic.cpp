@@ -1,12 +1,19 @@
 #include "FFmpegMusic.h"
 
 AVFormatContext *pFormatCtx;
+
 AVCodecContext *pCodecCtx;
+
 AVCodec *pCodex;
+
 AVPacket *packet;
+
 AVFrame *frame;
+
 SwrContext *swrContext;
+
 uint8_t *out_buffer;
+
 int out_channer_nb;
 int audio_stream_idx = -1;
 
@@ -29,17 +36,20 @@ int createFFmpeg(int *rate, int *channel, char *input) {
 
     for (int i = 0; i < pFormatCtx->nb_streams; ++i) {
         if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-            LOGE("  找到音频id %d", pFormatCtx->streams[i]->codec->codec_type);
+            LOGE("找到音频id %d", pFormatCtx->streams[i]->codec->codec_type);
             audio_stream_idx = i;
             break;
         }
     }
+
     // mp3的解码器 获取音频编解码器
     pCodecCtx = pFormatCtx->streams[audio_stream_idx]->codec;
 
     pCodex = avcodec_find_decoder(pCodecCtx->codec_id);
 
     if (avcodec_open2(pCodecCtx, pCodex, NULL) < 0) {
+        LOGE("avcodec_open2 error");
+        return -1;
     }
     packet = (AVPacket *) av_malloc(sizeof(AVPacket));
     // av_init_packet(packet);
