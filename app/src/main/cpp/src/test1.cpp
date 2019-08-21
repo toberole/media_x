@@ -102,7 +102,7 @@ Java_com_xxx_media_Media_test1(JNIEnv *env, jclass type, jstring in_path_, jstri
     while (av_read_frame(avFormatContext, packet) >= 0) {
         // 解码AVPacket->AVFrame
         len = avcodec_decode_video2(codecContext, frame, &got_frame, packet);
-        if (got_frame) {// 非零
+        if (got_frame && packet->stream_index == video_index) {// 非零
             // frame->yuvFrame (YUV420P)
             // 转为指定的YUV420P像素帧
             sws_scale(sws_ctx, frame->data, frame->linesize, 0,
