@@ -29,6 +29,9 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
         return;
     }
 
+    // 打印参数
+    // av_dump_format(pFormatContext, 0, in_path, 0);
+
     // 获取流信息
     res = avformat_find_stream_info(pFormatContext, NULL);
     if (res < 0) {
@@ -44,13 +47,15 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
         }
     }
 
+    pFormatContext->streams[video_index]->time_base;
+
     if (video_index < 0) {
         LOGI("没有找到视频流");
         return;
     }
 
-    AVCodecContext *pCodecContext = pFormatContext->streams[video_index]->codec;
     // 获取解码器
+    AVCodecContext *pCodecContext = pFormatContext->streams[video_index]->codec;
     AVCodec *pCodec = avcodec_find_decoder(pCodecContext->codec_id);
     res = avcodec_open2(pCodecContext, pCodec, NULL);
     if (res < 0) {
@@ -70,6 +75,9 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
     int buffer_size = avpicture_get_size(AV_PIX_FMT_RGBA, pCodecContext->width,
                                          pCodecContext->height);
     uint8_t *out_buffer = static_cast<uint8_t *>(av_malloc(buffer_size));
+    // 前面的av_frame_alloc函数，只是为这个AVFrame结构体分配了内存，
+    // 而该类型的指针指向的内存还没分配。这里把av_malloc得到的内存和AVFrame关联起来。
+    // 其还会设置AVFrame的其他成员
     // 关联缓冲区
     avpicture_fill(reinterpret_cast<AVPicture *>(rgb_frame), out_buffer, AV_PIX_FMT_RGBA,
                    pCodecContext->width,
@@ -93,13 +101,16 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
     ANativeWindow_Buffer nativeWindow_buffer;
     int frameCount = 0;
 
+    // 配置nativeWindow_buffer
+    ANativeWindow_setBuffersGeometry(nativeWindow, pCodecContext->width,
+                                     pCodecContext->height, WINDOW_FORMAT_RGBA_8888);
+
     while (av_read_frame(pFormatContext, pkt) >= 0) {
         if (pkt->stream_index == video_index) {
             res = avcodec_decode_video2(pCodecContext, frame, &frameCount, pkt);
             if (res > 0) {
-                // 配置nativeWindow_buffer
-                ANativeWindow_setBuffersGeometry(nativeWindow, pCodecContext->width,
-                                                 pCodecContext->height, WINDOW_FORMAT_RGBA_8888);
+                // av_rescale_q(pkt->pts, pCodec, pCodecContext->time_base)
+
                 // lock
                 ANativeWindow_lock(nativeWindow, &nativeWindow_buffer, NULL);
 
@@ -116,6 +127,8 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
                 // 实际内存一行数量
                 int srcStride = rgb_frame->linesize[0];
 
+                // 向 nativeWindow_buffer拷贝数据
+                // 一行一行的拷贝
                 for (int i = 0; i < pCodecContext->height; ++i) {
                     memcpy(dst + i * destStride, src + i * srcStride, srcStride);
                 }

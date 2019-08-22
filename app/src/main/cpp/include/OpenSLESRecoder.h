@@ -1,0 +1,10 @@
+#ifndef MEDIA_XXX_OPENSLESRECODER_H
+#define MEDIA_XXX_OPENSLESRECODER_H
+
+
+class OpenSLESRecoder {
+
+};
+
+
+#endif //MEDIA_XXX_OPENSLESRECODER_H
