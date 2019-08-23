@@ -6,7 +6,8 @@
     Object 和 Interface
     OpenSL ES 有两个重要的概念 Object 和 Interface，“对象”和“接口”。
     (1) 每个 Object 可能会存在一个或者多个 Interface，官方为每一种 Object 都定义了一系列的 Interface。
-    (2) 每个 Object 对象都提供了一些最基础的操作，比如：Realize，Resume，GetState，Destroy 等等，如果希望使用该对象支持的功能函数，则必须通过其 GetInterface 函数拿到 Interface 接口，然后通过 Interface 来访问功能函数。
+    (2) 每个 Object 对象都提供了一些最基础的操作，比如：Realize，Resume，GetState，Destroy 等等，
+        如果希望使用该对象支持的功能函数，则必须通过其 GetInterface 函数拿到 Interface 接口，然后通过 Interface 来访问功能函数。
     (3) 并不是每个系统上都实现了 OpenSL ES 为 Object 定义的所有 Interface，所以在获取 Interface 的时候需要做一些选择和判断。
  */
 

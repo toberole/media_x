@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activity.TestAudioPlayerActivity">
+    tools:context=".activity.TestAudioOpenSLActivity">
 
     <Button
         android:id="@+id/btn_playAudio1"
@@ -23,5 +23,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="btn_sl_stopplayAudio2" />
+
+    <Button
+        android:id="@+id/btn_sl_recodAudio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="btn_sl_recodAudio" />
+
+    <Button
+        android:id="@+id/btn_sl_stoprecodAudio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="btn_sl_stoprecodAudio" />
+
 
 </LinearLayout>

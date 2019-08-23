@@ -47,12 +47,13 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
         }
     }
 
-    pFormatContext->streams[video_index]->time_base;
-
     if (video_index < 0) {
         LOGI("没有找到视频流");
         return;
     }
+
+    pFormatContext->streams[video_index]->time_base;
+    LOGI("pFormatContext->duration = %lld", pFormatContext->duration);
 
     // 获取解码器
     AVCodecContext *pCodecContext = pFormatContext->streams[video_index]->codec;
@@ -62,6 +63,10 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
         LOGI("打开解码器失败");
         return;
     }
+
+    LOGI("pCodecContext->pix_fmt = %d", pCodecContext->pix_fmt);
+    LOGI("pCodecContext->pix_fmt = %d", pCodecContext->pix_fmt == AV_PIX_FMT_YUVJ420P);
+
 
     AVPacket *pkt = (AVPacket *) av_malloc(sizeof(AVPacket));
     av_init_packet(pkt);
@@ -104,13 +109,18 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
     // 配置nativeWindow_buffer
     ANativeWindow_setBuffersGeometry(nativeWindow, pCodecContext->width,
                                      pCodecContext->height, WINDOW_FORMAT_RGBA_8888);
-
+    int n = 0;
     while (av_read_frame(pFormatContext, pkt) >= 0) {
         if (pkt->stream_index == video_index) {
             res = avcodec_decode_video2(pCodecContext, frame, &frameCount, pkt);
             if (res > 0) {
                 // av_rescale_q(pkt->pts, pCodec, pCodecContext->time_base)
-
+                double pts = av_frame_get_best_effort_timestamp(frame);
+                LOGI("pts = %lld,key_frame = %d,pict_type = %d,n = %d",
+                     pts,
+                     frame->key_frame,
+                     frame->pict_type,
+                     ++n);
                 // lock
                 ANativeWindow_lock(nativeWindow, &nativeWindow_buffer, NULL);
 
@@ -134,6 +144,7 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
                 }
 
                 ANativeWindow_unlockAndPost(nativeWindow);
+
                 usleep(1000 * 16);
             }
         }

@@ -10,7 +10,7 @@ import com.xxx.media.MusicPlay;
 import com.xxx.media.R;
 import com.xxx.media.Test;
 
-public class TestAudioPlayerActivity extends BaseActivity {
+public class TestAudioOpenSLActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,5 +38,15 @@ public class TestAudioPlayerActivity extends BaseActivity {
     @OnClick(R.id.btn_sl_stopplayAudio2)
     void btn_sl_stopplayAudio2() {
         Media.test5_opensl_es_stop();
+    }
+
+    @OnClick(R.id.btn_sl_recodAudio)
+    void btn_sl_recodAudio() {
+
+    }
+
+    @OnClick(R.id.btn_sl_stoprecodAudio)
+    void btn_sl_stoprecodAudio() {
+
     }
 }
