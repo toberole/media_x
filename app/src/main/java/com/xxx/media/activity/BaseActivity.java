@@ -1,5 +1,7 @@
 package com.xxx.media.activity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -23,5 +25,11 @@ public class BaseActivity extends AppCompatActivity {
                 Toast.makeText(BaseActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
+
+    }
+
+    protected void startPage(Class<? extends Activity> pageClazz) {
+        Intent intent = new Intent(BaseActivity.this, pageClazz);
+        BaseActivity.this.startActivity(intent);
     }
 }

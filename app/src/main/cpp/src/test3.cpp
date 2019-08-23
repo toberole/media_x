@@ -79,19 +79,20 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
     // 分配缓冲区
     int buffer_size = avpicture_get_size(AV_PIX_FMT_RGBA, pCodecContext->width,
                                          pCodecContext->height);
-    uint8_t *out_buffer = static_cast<uint8_t *>(av_malloc(buffer_size));
-    // 前面的av_frame_alloc函数，只是为这个AVFrame结构体分配了内存，
-    // 而该类型的指针指向的内存还没分配。这里把av_malloc得到的内存和AVFrame关联起来。
-    // 其还会设置AVFrame的其他成员
+    uint8_t *out_buffer = static_cast<uint8_t *>(av_malloc(buffer_size * sizeof(uint8_t)));
+    // 前面的av_frame_alloc函数，只是为这个AVFrame结构体分配了内存，而该类型的指针指向的内存还没分配。
+    // 这里把av_malloc得到的内存和AVFrame关联起来。其还会设置AVFrame的其他成员
     // 关联缓冲区
     avpicture_fill(reinterpret_cast<AVPicture *>(rgb_frame), out_buffer, AV_PIX_FMT_RGBA,
                    pCodecContext->width,
                    pCodecContext->height);
 
     // 格式转换
-    SwsContext *swsContext = sws_getContext(pCodecContext->width, pCodecContext->height,
+    SwsContext *swsContext = sws_getContext(pCodecContext->width,
+                                            pCodecContext->height,
                                             pCodecContext->pix_fmt,
-                                            pCodecContext->width, pCodecContext->height,
+                                            pCodecContext->width,
+                                            pCodecContext->height,
                                             AV_PIX_FMT_RGBA,
                                             SWS_BICUBIC, NULL, NULL, NULL);
 
