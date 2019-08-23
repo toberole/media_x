@@ -47,7 +47,6 @@ public class TriangleRender extends BaseRenderer implements GLSurfaceView.Render
     //顶点之间的偏移量
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 每个顶点四个字节
 
-
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
         //将背景设置为灰色
@@ -73,7 +72,6 @@ public class TriangleRender extends BaseRenderer implements GLSurfaceView.Render
         GLES20.glLinkProgram(mProgram);
     }
 
-
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
@@ -92,12 +90,15 @@ public class TriangleRender extends BaseRenderer implements GLSurfaceView.Render
         GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
                 GLES20.GL_FLOAT, false,
                 vertexStride, vertexBuffer);
+
         //获取片元着色器的vColor成员的句柄
         mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
         //设置绘制三角形的颜色
         GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+
         //绘制三角形
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
+
         //禁止顶点数组的句柄
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
