@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.xxx.media.R;
 import com.xxx.media.opengl.MyRenderer;
+import com.xxx.media.opengl.TriangleRender;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,6 +20,7 @@ public class OpenGLActivity extends BaseActivity {
 
     @BindView(R.id.glSurfaceView)
     GLSurfaceView glSurfaceView;
+
     private MyRenderer myRenderer;
 
     @Override
@@ -34,15 +36,16 @@ public class OpenGLActivity extends BaseActivity {
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
         int reqGlEsVersion = configurationInfo.reqGlEsVersion;
 
-        Log.i(TAG, "reqGlEsVersion: " + reqGlEsVersion);
+        Log.i(TAG, "reqGlEsVersion: " + Integer.toHexString(reqGlEsVersion));
 
         glSurfaceView.setEGLContextClientVersion(2);
+
         myRenderer = new MyRenderer();
-        glSurfaceView.setRenderer(myRenderer);
+        glSurfaceView.setRenderer(new TriangleRender());
 
         // 设置渲染模式
-        // RENDERMODE_WHEN_DIRTY表示被动渲染，只有在调用requestRender或者onResume等
-        // 方法时才会进行渲染。RENDERMODE_CONTINUOUSLY表示持续渲染
+        // RENDERMODE_WHEN_DIRTY 表示被动渲染 只有在调用requestRender或者onResume等方法时才会进行渲染。
+        // RENDERMODE_CONTINUOUSLY 表示持续渲染
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 }
