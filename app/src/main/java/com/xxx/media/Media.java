@@ -59,4 +59,5 @@ public class Media {
     public native static void test8_mux_1(String in_path_video, String in_path_audeo, String out_path);
 
 
+    public native static void test8_mp42avi(String video_mp4, String video_avi);
 }

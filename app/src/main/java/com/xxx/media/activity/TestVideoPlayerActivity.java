@@ -48,4 +48,12 @@ public class TestVideoPlayerActivity extends BaseActivity {
             }
         }).start();
     }
+
+
+    @OnClick(R.id.btn_mp42avi)
+    void btn_mp42avi() {
+        Media.test8_mp42avi(Test.VIDEO, "/mnt/sdcard/aaa_media/temp_.avi");
+
+
+    }
 }

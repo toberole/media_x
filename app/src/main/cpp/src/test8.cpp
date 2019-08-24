@@ -1,9 +1,11 @@
 extern "C" {
-//#include <libavdevice/avdevice.h>
+#include <libavformat/avformat.h>
 }
+
 
 #include "log.h"
 // 可以参看 ffmepg源码demo doc/examples muxing.c
+
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -88,4 +90,63 @@ Java_com_xxx_media_Media_test8_1mux_11(JNIEnv *env, jclass type, jstring in_path
     env->ReleaseStringUTFChars(in_path_video_, in_path_video);
     env->ReleaseStringUTFChars(in_path_audeo_, in_path_audeo);
     env->ReleaseStringUTFChars(out_path_, out_path);
+}
+
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_xxx_media_Media_test8_1mp42avi(JNIEnv *env, jclass type, jstring video_mp4_,
+                                        jstring video_avi_) {
+    const char *video_mp4 = env->GetStringUTFChars(video_mp4_, 0);
+    const char *video_avi = env->GetStringUTFChars(video_avi_, 0);
+
+    LOGI("test8_1mp42avi");
+
+    av_register_all();
+
+    AVFormatContext *ifmt_ctx = avformat_alloc_context();
+
+    int ret;
+    char errbuf[1024] = {0};
+
+    ret = avformat_open_input(&ifmt_ctx, video_mp4, NULL, NULL);
+
+    if (ret < 0) {
+        av_strerror(ret, errbuf, 1024);
+        LOGI("avformat_open_input error info: %s", errbuf);
+        return;
+    }
+
+    ret = avformat_find_stream_info(ifmt_ctx, NULL);
+    if (ret < 0) {
+        av_strerror(ret, errbuf, 1024);
+        LOGI("avformat_find_stream_info error info: %s", errbuf);
+        return;
+    }
+
+    LOGI("-----------");
+
+    /**
+     * MP4中使用的是H264编码
+     * H264编码有两种编码方式
+     * 1、annexb模式,它是传统模式，有startcode、sps、pps在Element Stream中
+     * 2、mp4模式，一般在mp4、mkv、avi都没有startcode、sps和pps以及其他信息被封装在容器中
+     *
+     * 每一帧前面是这一帧的长度值，很多解码器只支持annexb模式
+     * 因此需要对MP4模式做转换，在FFmpeg中使用h264_mp4toannexb_filter 进行模式转换
+     */
+
+    AVOutputFormat *ofmt;
+    AVBitStreamFilterContext *vbsf;
+
+    vbsf = av_bitstream_filter_init("h264_mp4toannexb");
+
+    av_dump_format(ifmt_ctx, 0, video_mp4, 0);
+
+
+    AVFormatContext *ofmt_ctx;
+
+    env->ReleaseStringUTFChars(video_mp4_, video_mp4);
+    env->ReleaseStringUTFChars(video_avi_, video_avi);
 }

@@ -169,4 +169,22 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
         String formatStr = formatter.format(new Date());
         return formatStr;
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaRecorder != null) {
+            mediaRecorder.setOnErrorListener(null);
+            mediaRecorder.setPreviewDisplay(null);
+            mediaRecorder.reset();
+            mediaRecorder.release();
+            mediaRecorder = null;
+        }
+
+        if (camera != null) {
+            camera.unlock();
+            camera.release();
+            camera = null;
+        }
+    }
 }

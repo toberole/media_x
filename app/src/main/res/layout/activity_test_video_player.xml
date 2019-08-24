@@ -25,4 +25,11 @@
         android:layout_height="wrap_content"
         android:text="btn_mux1" />
 
+    <Button
+        android:id="@+id/btn_mp42avi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="btn_mp42avi" />
+
+
 </LinearLayout>
