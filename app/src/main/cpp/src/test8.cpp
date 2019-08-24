@@ -92,8 +92,6 @@ Java_com_xxx_media_Media_test8_1mux_11(JNIEnv *env, jclass type, jstring in_path
     env->ReleaseStringUTFChars(out_path_, out_path);
 }
 
-
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_xxx_media_Media_test8_1mp42avi(JNIEnv *env, jclass type, jstring video_mp4_,
