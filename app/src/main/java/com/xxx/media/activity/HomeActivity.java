@@ -20,4 +20,21 @@ public class HomeActivity extends BaseActivity {
     void btn_OpenGLActivity() {
         startPage(OpenGLActivity.class);
     }
+
+    @OnClick(R.id.btn_FilterActivity)
+    void btn_FilterActivity() {
+        startPage(FilterActivity.class);
+    }
+
+    @OnClick(R.id.btn_TestVideoPlayerActivity)
+    void btn_TestVideoPlayerActivity() {
+        startPage(TestVideoPlayerActivity.class);
+    }
+
+    @OnClick(R.id.btn_MediaRecorderActivity)
+    void btn_MediaRecorderActivity() {
+        startPage(MediaRecorderActivity.class);
+    }
+
+
 }

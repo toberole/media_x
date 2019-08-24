@@ -14,6 +14,13 @@
         android:layout_height="match_parent"
         android:layout_weight="1" />
 
+    <TextView
+        android:id="@+id/tv_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textColor="#FF0000" />
+
     <Button
         android:id="@+id/btn_record"
         android:layout_width="match_parent"

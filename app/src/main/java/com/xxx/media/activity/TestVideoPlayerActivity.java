@@ -38,4 +38,14 @@ public class TestVideoPlayerActivity extends BaseActivity {
             }
         }).start();
     }
+
+    @OnClick(R.id.btn_mux1)
+    void btn_mux1() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Media.test8_mux_1(Test.VIDEO, "", "");
+            }
+        }).start();
+    }
 }

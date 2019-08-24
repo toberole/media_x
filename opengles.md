@@ -1,0 +1,3 @@
+attribute 只能在vertex中使用
+varying 用于vertex和fragment之间传递值
+uniform 用于在application中向vertex和fragment中传递值。

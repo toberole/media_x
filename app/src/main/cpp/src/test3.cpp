@@ -115,6 +115,9 @@ Java_com_xxx_media_Media_test3(JNIEnv *env, jclass type, jstring in_path_, jobje
         if (pkt->stream_index == video_index) {
             res = avcodec_decode_video2(pCodecContext, frame, &frameCount, pkt);
             if (res > 0) {
+//                for (int i = 0; i < 1; ++i) {
+//                    LOGI("xxxxx = %d: ", frame->data[0]);
+//                }
                 // av_rescale_q(pkt->pts, pCodec, pCodecContext->time_base)
                 double pts = av_frame_get_best_effort_timestamp(frame);
                 LOGI("pts = %lld,key_frame = %d,pict_type = %d,n = %d",

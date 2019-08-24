@@ -18,6 +18,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="OpenGLES" />
+
+        <Button
+            android:id="@+id/btn_FilterActivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="FilterActivity" />
+
+        <Button
+            android:id="@+id/btn_TestVideoPlayerActivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TestVideoPlayerActivity" />
+
+        <Button
+            android:id="@+id/btn_MediaRecorderActivity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MediaRecorderActivity" />
+
+
     </LinearLayout>
 
 </ScrollView>

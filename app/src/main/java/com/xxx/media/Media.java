@@ -47,4 +47,16 @@ public class Media {
     public native static void test6_opensl_es_stoprecord();
 
 
+    /**
+     * AVFilter
+     */
+    public native static void test7_avfilter_1(String in_path, Object surface);
+
+
+    /**
+     * 音视频合成
+     */
+    public native static void test8_mux_1(String in_path_video, String in_path_audeo, String out_path);
+
+
 }

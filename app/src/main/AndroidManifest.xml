@@ -20,6 +20,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".activity.MediaRecorderActivity" />
+        <activity android:name=".activity.TestVideoPlayerActivity" />
+        <activity android:name=".activity.FilterActivity" />
         <activity android:name=".activity.OpenGLActivity" />
         <activity android:name=".activity.HomeActivity">
             <intent-filter>

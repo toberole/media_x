@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.TextureView;
 import android.widget.Button;
+import android.widget.TextView;
 
 
 import com.xxx.media.Constant;
@@ -14,6 +15,8 @@ import com.xxx.media.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,6 +31,9 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
     @BindView(R.id.btn_record)
     Button btn_record;
 
+    @BindView(R.id.tv_path)
+    TextView tv_path;
+
     private SurfaceTexture surface;
 
     private boolean textureAvailable = false;
@@ -39,6 +45,8 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
     private File file;
 
     private MediaRecorder mediaRecorder;
+
+    private String output_file_path;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +67,30 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
         openCamera();
     }
 
+    @OnClick(R.id.btn_record)
+    void btn_record() {
+        if (textureAvailable) {
+            if (isStop) {
+                record();
+                btn_record.setText("stop");
+            } else {
+                btn_record.setText("start");
+                tv_path.setText(output_file_path + "");
+                if (mediaRecorder != null) {
+                    mediaRecorder.setOnErrorListener(null);
+                    mediaRecorder.setPreviewDisplay(null);
+                    mediaRecorder.reset();
+                    mediaRecorder.release();
+                    mediaRecorder = null;
+                }
+            }
+
+            isStop = !isStop;
+        } else {
+            toast("textureAvailable false");
+        }
+    }
+
     private void openCamera() {
         camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
         Camera.Parameters parameters = camera.getParameters();//设置参数
@@ -76,52 +108,40 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
         tv_preView.setAlpha(1.0f);
     }
 
-    @OnClick(R.id.btn_record)
-    void btn_record() {
-        if (textureAvailable) {
-            if (isStop) {
-                record();
-                isStop = true;
-                btn_record.setText("stop");
-            } else {
-                isStop = true;
-                btn_record.setText("start");
-                if (mediaRecorder != null) {
-                    mediaRecorder.setOnErrorListener(null);
-                    mediaRecorder.setPreviewDisplay(null);
-                    mediaRecorder.reset();
-                    mediaRecorder.release();
-                    mediaRecorder = null;
-                }
-            }
-        } else {
-            toast("textureAvailable false");
-        }
-    }
-
     public void record() {
-        camera.unlock();
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setCamera(camera);
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);  // 设置视频的输出格式 为MP4
-
-        mediaRecorder.setAudioSamplingRate(16000);
-        mediaRecorder.setAudioChannels(1);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); // 设置视频的编码格式
-        mediaRecorder.setVideoSize(1920, 1080);  // 设置视频大小
-        mediaRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
-        mediaRecorder.setVideoFrameRate(60); // 设置帧率
-        mediaRecorder.setOrientationHint(90);
-        file = new File(Constant.DIR);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        mediaRecorder.setOutputFile(file.getPath() + File.separator + System.currentTimeMillis() + ".mp4");
         try {
+            camera.unlock();
+            mediaRecorder = new MediaRecorder();
+            mediaRecorder.setCamera(camera);
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+
+            // 设置视频的输出格式 为MP4
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+            mediaRecorder.setAudioSamplingRate(16000);
+            mediaRecorder.setAudioChannels(1);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+
+            // 设置视频的编码格式
+            mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+            // 设置视频大小
+            mediaRecorder.setVideoSize(1920, 1080);
+
+            mediaRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
+            // 设置帧率
+            mediaRecorder.setVideoFrameRate(60);
+
+            mediaRecorder.setOrientationHint(90);
+
+            file = new File(Constant.DIR);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+
+            output_file_path = file.getPath() + File.separator + getTimeString() + ".mp4";
+            mediaRecorder.setOutputFile(output_file_path);
+
             mediaRecorder.prepare();
             mediaRecorder.start();
         } catch (IOException e) {
@@ -142,5 +162,11 @@ public class MediaRecorderActivity extends BaseActivity implements TextureView.S
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
+    }
+
+    private String getTimeString() {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HH:mm:ss");
+        String formatStr = formatter.format(new Date());
+        return formatStr;
     }
 }

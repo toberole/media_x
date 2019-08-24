@@ -19,4 +19,10 @@
         android:layout_height="wrap_content"
         android:text="playVideo" />
 
+    <Button
+        android:id="@+id/btn_mux1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="btn_mux1" />
+
 </LinearLayout>
