@@ -107,9 +107,6 @@ Java_com_xxx_media_Media_test8_1mp42avi(JNIEnv *env, jclass type, jstring video_
 
     int ret;
     char errbuf[1024] = {0};
-
-    ret = avformat_open_input(&ifmt_ctx, video_mp4, NULL, NULL);
-
     if (ret < 0) {
         av_strerror(ret, errbuf, 1024);
         LOGI("avformat_open_input error info: %s", errbuf);
@@ -122,8 +119,6 @@ Java_com_xxx_media_Media_test8_1mp42avi(JNIEnv *env, jclass type, jstring video_
         LOGI("avformat_find_stream_info error info: %s", errbuf);
         return;
     }
-
-    LOGI("-----------");
 
     /**
      * MP4中使用的是H264编码
@@ -142,9 +137,118 @@ Java_com_xxx_media_Media_test8_1mp42avi(JNIEnv *env, jclass type, jstring video_
 
     av_dump_format(ifmt_ctx, 0, video_mp4, 0);
 
-
     AVFormatContext *ofmt_ctx;
+    // 初始化输出视频码流的AVFormatContext
+    avformat_alloc_output_context2(&ofmt_ctx, NULL, NULL, video_avi);
 
+    AVPacket pkt;
+
+    ret = avformat_open_input(&ifmt_ctx, video_mp4, NULL, NULL);
+    for (int i = 0; i < ifmt_ctx->nb_streams; ++i) {
+        // 通过输入的AVstream 创建输出的AVstream
+        AVStream *in_stream = ifmt_ctx->streams[i];
+        AVStream *out_stream = avformat_new_stream(ofmt_ctx, in_stream->codec->codec);
+
+        if (!out_stream) {
+            LOGI("avformat_new_stream error");
+            return;
+        }
+
+        if (avcodec_copy_context(out_stream->codec, in_stream->codec) < 0) {
+            LOGI("avcodec_copy_context error");
+            return;
+        }
+
+        out_stream->codec->codec_tag = 0;
+        if (ofmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
+            out_stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+        }
+
+        // 输出信息
+        av_dump_format(ofmt_ctx, 0, video_avi, 1);
+
+        int frame_index = 0;
+
+        // 打开输出文件
+        if (!(ofmt->flags & AVFMT_NOFILE)) {
+            ret = avio_open(&ofmt_ctx->pb, video_avi, AVIO_FLAG_WRITE);
+            if (ret < 0) {
+                LOGI("avio_open error %s", av_err2str(ret));
+                return;
+            }
+
+            // 写头文件
+            ret = avformat_write_header(ofmt_ctx, NULL);
+            if (ret < 0) {
+                LOGI("avformat_write_header error %s", av_err2str(ret));
+                return;
+            }
+
+
+            while (1) {
+                AVStream *in_stream;
+                AVStream *out_stream;
+
+                ret = av_read_frame(ifmt_ctx, &pkt);
+                if (ret < 0)break;
+
+                in_stream = ifmt_ctx->streams[pkt.stream_index];
+                out_stream = ofmt_ctx->streams[pkt.stream_index];
+
+
+                // 转换pts dts
+                pkt.pts = av_rescale_q_rnd(
+                        pkt.pts, in_stream->time_base,
+                        out_stream->time_base,
+                        (AVRounding) (
+                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX
+                        ));
+
+                pkt.dts = av_rescale_q_rnd(
+                        pkt.dts, in_stream->time_base,
+                        out_stream->time_base,
+                        (AVRounding) (
+                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX
+                        ));
+
+                pkt.duration = av_rescale_q(pkt.duration, in_stream->time_base,
+                                            out_stream->time_base);
+
+                pkt.pos = -1;
+
+                if (pkt.stream_index == 0) {
+                    AVPacket fpkt = pkt;
+                    int a = av_bitstream_filter_filter(vbsf, out_stream->codec, NULL, &fpkt.data,
+                                                       &fpkt.size, pkt.data, pkt.size,
+                                                       pkt.flags & AV_PKT_FLAG_KEY);
+                    pkt.data = fpkt.data;
+                    pkt.size = fpkt.size;
+                }
+
+                // 写入AVPacket
+                // 将AVPacket写入文件 存储音视频流压缩数据
+                if(av_write_frame(ofmt_ctx,&pkt)<0){
+                    LOGI("av_write_frame error");
+                    break;
+                }
+
+                av_packet_unref(&pkt);
+                frame_index++;
+
+            }
+
+            // 写文件结尾
+            av_write_trailer(ofmt_ctx);
+
+            avformat_close_input(&ifmt_ctx);
+
+            if (ofmt_ctx && !(ofmt->flags & AVFMT_NOFILE)){
+                avio_close(ofmt_ctx->pb);
+            }
+
+            avformat_free_context(ofmt_ctx);
+        }
+    }
     env->ReleaseStringUTFChars(video_mp4_, video_mp4);
     env->ReleaseStringUTFChars(video_avi_, video_avi);
 }
