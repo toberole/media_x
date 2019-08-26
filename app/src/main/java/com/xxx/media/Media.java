@@ -60,4 +60,8 @@ public class Media {
 
 
     public native static void test8_mp42avi(String video_mp4, String video_avi);
+
+    public native static void test9_extract_h264(String video_mp4, String video_h264);
+
+
 }

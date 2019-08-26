@@ -36,5 +36,10 @@ public class HomeActivity extends BaseActivity {
         startPage(MediaRecorderActivity.class);
     }
 
+    @OnClick(R.id.btn_H264Activity)
+    void btn_H264Activity() {
+        startPage(H264Activity.class);
+    }
+
 
 }

@@ -8,6 +8,7 @@ extern "C" {
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 }
+
 /**
  * 播放视频
  */
